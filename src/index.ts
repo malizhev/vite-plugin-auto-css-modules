@@ -1,10 +1,13 @@
 import { parse as parsePath } from "path";
 import { readFile } from "fs/promises";
-import type { Plugin, CSSModulesOptions } from "vite";
-import { transformStyles } from "./stylesTransformer";
-import { transformJSX } from "./jsxTransformer";
-import { PluginOptions } from "./types";
-import { getAllFilesInDirectory, resolveStylesFromDirectory } from "./helpers";
+import type { Plugin } from "vite";
+import { transformStyles } from "./stylesTransformer.js";
+import { transformJSX } from "./jsxTransformer.js";
+import { PluginOptions, StyleTransformerOptions } from "./types.js";
+import {
+  getAllFilesInDirectory,
+  resolveStylesFromDirectory,
+} from "./helpers.js";
 
 const defaultOptions: Partial<PluginOptions> = {
   componentExtensions: [".tsx", ".jsx"],
@@ -32,7 +35,7 @@ export default function cssAutoImport(
   const directoryComponentsMap = new Map<string, Set<string>>();
   const styleModuleIdToComponentIdsMap = new Map<string, Set<string>>();
 
-  let modulesOptions: CSSModulesOptions | undefined;
+  let styleTransformerOptions: StyleTransformerOptions;
 
   async function shouldTransformModule(id: string) {
     const path = parsePath(id);
@@ -55,7 +58,7 @@ export default function cssAutoImport(
 
   /**
    * Generates a URL that looks like the following:
-   * virtual:css-auto-import/e2fdd67cf4194/originalModuleId=<path> 
+   * virtual:css-auto-import/e2fdd67cf4194/originalModuleId=<path>
    */
   function generateVirtualStyleModuleId(moduleId: string) {
     const uniqueId = Math.random().toString(16).slice(2);
@@ -81,9 +84,25 @@ export default function cssAutoImport(
     name: "css-auto-import",
 
     configResolved(config) {
-      if (config.css?.modules && typeof config.css.modules === "object") {
-        modulesOptions = config.css.modules;
+      if (config.css.transformer === "lightningcss") {
+        styleTransformerOptions = {
+          type: "lightningcss",
+          options: config.css.lightningcss ?? {},
+        };
+        return;
       }
+
+      styleTransformerOptions = {
+        type: "postcss",
+        options: {
+          modules:
+            typeof config.css.modules === "object" ? config.css.modules : {},
+          plugins:
+            typeof config.css.postcss === "object"
+              ? config.css.postcss.plugins
+              : undefined,
+        },
+      };
     },
 
     configureServer(server) {
@@ -147,7 +166,9 @@ export default function cssAutoImport(
       /**
        * Extract the part that goes after the `originalModuleId=`
        */
-      const referencedModuleId = id.substring(separatorIdx + virtualModuleUrlSeparator.length);
+      const referencedModuleId = id.substring(
+        separatorIdx + virtualModuleUrlSeparator.length
+      );
 
       if (!styleModuleIdToCssMap.has(referencedModuleId)) {
         throw new Error(`Failed to resolve CSS module ${referencedModuleId}`);
@@ -195,7 +216,7 @@ export default function cssAutoImport(
           const result = await transformStyles(
             styleModuleId,
             styleModuleCode,
-            modulesOptions
+            styleTransformerOptions
           );
           css = result.css;
           manifest = result.manifest;

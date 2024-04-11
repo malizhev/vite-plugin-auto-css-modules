@@ -1,6 +1,8 @@
-import MagicString from "magic-string";
+import { defaultImport } from "default-import";
+import _traverse from "@babel/traverse";
+import _MagicString from "magic-string";
 import { parse } from "@babel/parser";
-import _traverse, { NodePath } from "@babel/traverse";
+import { NodePath } from "@babel/traverse";
 import {
   JSXAttribute,
   StringLiteral,
@@ -11,9 +13,11 @@ import {
   isStringLiteral,
 } from "@babel/types";
 
-// https://github.com/babel/babel/issues/13855
-// @ts-ignore
-const traverse = _traverse.default as typeof _traverse;
+/**
+ * Work around the NodeNext module resolution issues
+ */
+const traverse = defaultImport(_traverse);
+const MagicString = defaultImport(_MagicString);
 
 export async function transformJSX({
   moduleId,
@@ -125,7 +129,10 @@ export async function transformJSX({
   return generateRollupTransformResult(source, moduleId);
 }
 
-function generateRollupTransformResult(source: MagicString, moduleId: string) {
+function generateRollupTransformResult(
+  source: _MagicString.default,
+  moduleId: string
+) {
   return {
     code: source.toString(),
     map: source.generateMap({

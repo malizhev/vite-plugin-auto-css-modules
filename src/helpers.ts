@@ -1,7 +1,7 @@
 import { scandir } from "@nodelib/fs.scandir";
 import { parse } from "path";
 import micromatch from "micromatch";
-import { PluginOptions, ResolvedStyleResult } from "./types";
+import { PluginOptions, ResolvedStyleResult } from "./types.js";
 
 export async function resolveStylesFromDirectory({
   componentFilePath,

@@ -2,10 +2,10 @@
   "compilerOptions": {
     "strict": true,
     "target": "es2022",
-    "module": "es2022",
+    "module": "NodeNext",
     "baseUrl": "./",
     "declarationDir": "./dist/types",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,

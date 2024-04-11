@@ -17,6 +17,7 @@ const external = [
   "postcss-less",
   "postcss-scss",
   "postcss-modules",
+  "lightningcss",
   "magic-string",
   "@nodelib/fs.scandir",
   "micromatch",

@@ -1,7 +1,27 @@
+import type { AcceptedPlugin } from "postcss";
+import type { CSSModulesOptions, LightningCSSOptions } from "vite";
+
 export interface ResolvedStyleResult {
   isModule: boolean;
   filePath: string;
 }
+
+export interface PostCSSTransformerOptions {
+  type: "postcss";
+  options: {
+    plugins?: AcceptedPlugin[];
+    modules?: CSSModulesOptions;
+  };
+}
+
+export interface LightningCSSTransformerOptions {
+  type: "lightningcss";
+  options: LightningCSSOptions;
+}
+
+export type StyleTransformerOptions =
+  | PostCSSTransformerOptions
+  | LightningCSSTransformerOptions;
 
 export interface PluginOptions {
   /**
